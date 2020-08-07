@@ -162,14 +162,13 @@ class TestCarModel(unittest.TestCase):
         safety.safety_rx_hook(to_send)
       CS = self.CI.update(CC, (can.as_builder().to_bytes(),))
 
-      # TODO: check gas interceptor, wheel speeds, etc.
+      # TODO: check steering state
       # check that openpilot and panda safety agree on the car's state
       checks['gasPressed'] += CS.gasPressed != safety.get_gas_pressed_prev()
       checks['brakePressed'] += CS.brakePressed != safety.get_brake_pressed_prev()
       checks['controlsAllowed'] += CS.cruiseState.enabled != safety.get_controls_allowed()
-      checks['vehicleMoving'] += CS.standstill != safety.get_vehicle_moving()
 
-    # TODO: test should fail for any differences
+    # TODO: there should be no tolerance
     failed_checks = {k: v for k, v in checks.items() if v > 5}
     self.assertFalse(len(failed_checks), f"panda safety doesn't agree with CarState: {failed_checks}")
 
