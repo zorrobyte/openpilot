@@ -32,6 +32,11 @@ ignore_can_valid = [
   "HYUNDAI SANTA FE LIMITED 2019",
 ]
 
+ignore_carstate_check = [
+  # TODO: chrysler gas state in panda also checks wheel speed, refactor so it's only gas
+  "CHRYSLER PACIFICA HYBRID 2017",
+]
+
 @parameterized_class(('car_model'), [(car,) for car in all_known_cars()])
 class TestCarModel(unittest.TestCase):
 
@@ -147,6 +152,8 @@ class TestCarModel(unittest.TestCase):
   def test_panda_safety_carstate(self):
     if self.car_params.dashcamOnly:
       self.skipTest("no need to check panda safety for dashcamOnly")
+    if self.car_model in ignore_carstate_check:
+      self.skipTest("see comments in test_models.py")
 
     safety = libpandasafety_py.libpandasafety
     set_status = safety.set_safety_hooks(self.car_params.safetyModel.raw, self.car_params.safetyParam)
@@ -166,9 +173,7 @@ class TestCarModel(unittest.TestCase):
       # check that openpilot and panda safety agree on the car's state
       checks['gasPressed'] += CS.gasPressed != safety.get_gas_pressed_prev()
       checks['brakePressed'] += CS.brakePressed != safety.get_brake_pressed_prev()
-
-      # TODO: this doesn't work for cases like gas disengage. need to expose a cruise enabled state from panda
-      #checks['controlsAllowed'] += CS.cruiseState.enabled != safety.get_controls_allowed()
+      checks['controlsAllowed'] += not CS.cruiseState.enabled and safety.get_controls_allowed()
 
     # TODO: there should be no tolerance
     failed_checks = {k: v for k, v in checks.items() if v > 5}
