@@ -802,10 +802,11 @@ void cameras_init(MultiCameraState *s) {
   camera_init(&s->front, CAMERA_ID_AR0231, 2, 20);
   printf("front initted \n");
 #ifdef NOSCREEN
-  zsock_t *rgb_sock
+  zsock_t *rgb_sock;
   if (getenv("FL_IP")) {
     char rst[64];
-    rgb_sock = zsock_new_push(snprintf(rst, sizeof(rst), "tcp://%s:7768", getenv("FL_IP")));
+    snprintf(rst, sizeof(rst), "tcp://%s:7768", getenv("FL_IP"));
+    rgb_sock = zsock_new_push(rst);
   } else {
     rgb_sock = zsock_new_push("tcp://192.168.3.4:7768");
   }
@@ -1083,7 +1084,7 @@ void camera_autoexposure(CameraState *s, float grey_frac) {
 #ifdef NOSCREEN
 void sendrgb(MultiCameraState *s, uint8_t* dat, int len, uint8_t cam_id) {
   int err, err2;
-  int scale = 6;
+  int scale = 4;
   int old_width = FRAME_WIDTH;
   int old_height = FRAME_HEIGHT;
   int new_width = FRAME_WIDTH / scale;
