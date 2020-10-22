@@ -252,8 +252,8 @@ if WEBCAM:
 if not PC:
   car_started_processes += [
     'ubloxd',
-    'dmonitoringd',
-    'dmonitoringmodeld',
+    #'dmonitoringd',
+    #'dmonitoringmodeld',
   ]
 
 if ANDROID:

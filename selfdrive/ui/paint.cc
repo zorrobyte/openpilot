@@ -27,7 +27,7 @@ const mat3 intrinsic_matrix = (mat3){{
   0.0,   0.0,   1.0
 }};
 #else
-const float zoom = 2.35;
+const float zoom = 1.0;
 const mat3 intrinsic_matrix = (mat3){{
   910., 0., 1164.0/2,
   0., 910., 874.0/2,
@@ -409,6 +409,7 @@ static void ui_draw_vision_maxspeed(UIState *s) {
 }
 
 static void ui_draw_vision_speed(UIState *s) {
+  return;
   const Rect &viz_rect = s->scene.viz_rect;
   float v_ego = s->scene.controls_state.getVEgo();
   float speed = v_ego * 2.2369363 + 0.5;
