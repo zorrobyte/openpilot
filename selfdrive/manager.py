@@ -225,16 +225,16 @@ if not PC:
   ]
 
 car_started_processes = [
-  'controlsd',
-  'plannerd',
-  'loggerd',
-  'radard',
-  'calibrationd',
-  'paramsd',
+  #'controlsd',
+  #'plannerd',
+  #'loggerd',
+  #'radard',
+  #'calibrationd',
+  #'paramsd',
   'camerad',
-  'proclogd',
-  'locationd',
-  'clocksd',
+  #'proclogd',
+  #'locationd',
+  #'clocksd',
 ]
 
 driver_view_processes = [
