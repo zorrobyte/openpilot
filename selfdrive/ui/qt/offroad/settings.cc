@@ -47,7 +47,7 @@ ParamsToggle::ParamsToggle(QString param, QString title, QString description, QS
 
   setStyleSheet(R"(
     QCheckBox {
-      font-size: 70px;
+      font-size: 50px;
     }
     QCheckBox::indicator {
       width: 100px;
@@ -59,7 +59,9 @@ ParamsToggle::ParamsToggle(QString param, QString title, QString description, QS
     QCheckBox::indicator:checked {
       image: url(../assets/offroad/circled-checkmark.png);
     }
-    QLabel { font-size: 40px }
+    QLabel {
+      font-size: 40px
+    }
     * {
       background-color: #114265;
     }
@@ -189,6 +191,33 @@ QWidget * developer_panel() {
   return widget;
 }
 
+QWidget * network_panel() {
+  QVBoxLayout *main_layout = new QVBoxLayout;
+
+  std::map<std::string, const char *> btns = {
+    {"Enable wifi", ""},
+    {"Enable tethering", ""},
+  };
+
+  for (auto b : btns) {
+    QPushButton *btn = new QPushButton(QString::fromStdString(b.first));
+    main_layout->addWidget(btn);
+#ifdef __aarch64__
+    QObject::connect(btn, &QPushButton::released,
+                     [=]() {std::system(b.second);});
+#endif
+  }
+
+  QWidget *widget = new QWidget;
+  widget->setLayout(main_layout);
+  widget->setStyleSheet(R"(
+    QPushButton {
+      padding: 60px;
+    }
+  )");
+  return widget;
+}
+
 void SettingsWindow::setActivePanel() {
   QPushButton *btn = qobject_cast<QPushButton*>(sender());
   panel_layout->setCurrentWidget(panels[btn->text()]);
@@ -217,6 +246,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QWidget(parent) {
     {"device", device_panel()},
     {"toggles", toggles_panel()},
     {"developer", developer_panel()},
+    {"network", network_panel()},
   };
 
   for (auto &panel : panels) {
@@ -241,9 +271,9 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QWidget(parent) {
   QHBoxLayout *settings_layout = new QHBoxLayout();
   settings_layout->addSpacing(45);
   settings_layout->addLayout(sidebar_layout);
-  settings_layout->addSpacing(45);
+  settings_layout->addSpacing(150);
   settings_layout->addLayout(panel_layout);
-  settings_layout->addSpacing(45);
+  settings_layout->addSpacing(100);
   setLayout(settings_layout);
 
   setStyleSheet(R"(
