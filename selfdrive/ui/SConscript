@@ -4,7 +4,20 @@ qt_env = None
 if arch in ["x86_64", "Darwin", "larch64"]:
   qt_env = env.Clone()
 
-  if arch == "Darwin":
+  if arch == "larch64":
+    qt_env['QTDIR'] = "/usr/local/Qt-5.15.1"
+    QT_BASE = "/usr/local/Qt-5.15.1/"
+    qt_dirs = [
+      QT_BASE + "include/",
+      QT_BASE + "include/QtWidgets",
+      QT_BASE + "include/QtGui",
+      QT_BASE + "include/QtCore",
+      QT_BASE + "include/QtDBus",
+      QT_BASE + "include/QtMultimedia",
+      QT_BASE + "include/QtGui/5.5.1/QtGui",
+    ]
+    qt_env["RPATH"] += [QT_BASE + "lib"]
+  elif arch == "Darwin":
     qt_env['QTDIR'] = "/usr/local/opt/qt"
     QT_BASE = "/usr/local/opt/qt/"
     qt_dirs = [
