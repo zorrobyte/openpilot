@@ -14,8 +14,8 @@ class CarInterface(CarInterfaceBase):
     return float(accel) / 3.0
 
   @staticmethod
-  def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=[]):  # pylint: disable=dangerous-default-value
-    ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
+  def get_params(candidate, fingerprint=gen_empty_fingerprint(), has_relay=False, car_fw=[]):  # pylint: disable=dangerous-default-value
+    ret = CarInterfaceBase.get_std_params(candidate, fingerprint, has_relay)
 
     ret.carName = "toyota"
     ret.safetyModel = car.CarParams.SafetyModel.toyota
@@ -33,12 +33,12 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.70
       ret.steerRatio = 15.74   # unknown end-to-end spec
       tire_stiffness_factor = 0.6371   # hand-tune
-      ret.mass = 3045. * CV.LB_TO_KG + STD_CARGO_KG
+      ret.mass = 3370. * CV.LB_TO_KG + STD_CARGO_KG
 
       ret.lateralTuning.init('indi')
       ret.lateralTuning.indi.innerLoopGain = 4.0
       ret.lateralTuning.indi.outerLoopGain = 3.0
-      ret.lateralTuning.indi.timeConstant = 1.0
+      ret.lateralTuning.indi.timeConstant = 0.1
       ret.lateralTuning.indi.actuatorEffectiveness = 1.0
       ret.steerActuatorDelay = 0.5
 
@@ -243,7 +243,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.3], [0.05]]
       ret.lateralTuning.pid.kf = 0.00007
 
-    elif candidate in [CAR.LEXUS_NXH, CAR.LEXUS_NX]:
+    elif candidate == CAR.LEXUS_NXH:
       stop_and_go = True
       ret.safetyParam = 73
       ret.wheelbase = 2.66
@@ -253,17 +253,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
       ret.lateralTuning.pid.kf = 0.00006
 
-    elif candidate == CAR.PRIUS_TSS2:
-      stop_and_go = True
-      ret.safetyParam = 73
-      ret.wheelbase = 2.70002 #from toyota online sepc.
-      ret.steerRatio = 13.4   # True steerRation from older prius
-      tire_stiffness_factor = 0.6371   # hand-tune
-      ret.mass = 3115. * CV.LB_TO_KG + STD_CARGO_KG
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.35], [0.15]]
-      ret.lateralTuning.pid.kf = 0.00007818594
-
-    ret.steerRateCost = 1.
+    ret.steerRateCost = 0.5
     ret.centerToFront = ret.wheelbase * 0.44
 
     # TODO: get actual value, for now starting with reasonable value for
@@ -275,7 +265,7 @@ class CarInterface(CarInterfaceBase):
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront,
                                                                          tire_stiffness_factor=tire_stiffness_factor)
 
-    ret.enableCamera = True
+    ret.enableCamera = is_ecu_disconnected(fingerprint[0], FINGERPRINTS, ECU_FINGERPRINT, candidate, Ecu.fwdCamera) or has_relay
     # Detect smartDSU, which intercepts ACC_CMD from the DSU allowing openpilot to send it
     smartDsu = 0x2FF in fingerprint[0]
     # In TSS2 cars the camera does long control
@@ -327,6 +317,8 @@ class CarInterface(CarInterfaceBase):
     # events
     events = self.create_common_events(ret)
 
+    if self.cp_cam.can_invalid_cnt >= 200 and self.CP.enableCamera and not self.CP.isPandaBlack:
+      events.add(EventName.invalidGiraffeToyota)
     if self.CS.low_speed_lockout and self.CP.openpilotLongitudinalControl:
       events.add(EventName.lowSpeedLockout)
     if ret.vEgo < self.CP.minEnableSpeed and self.CP.openpilotLongitudinalControl:
